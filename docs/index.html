@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="theme-color" content="#121719">
+ <meta name="description" content="Conoce Gran Zona Marciana: la app Android de gestión de realities, votaciones, galas e inscripciones. Vista web interactiva con datos ficticios.">
+ <title>Gran Zona Marciana · Centro de producción</title>
+ <link rel="icon" type="image/svg+xml" href="favicon.svg">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="styles.css"><script defer src="app.js"></script>
+</head>
+<body>
+<svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+ <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+ <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M2 20c0-4 3-7 7-7s7 3 7 7m1-15a3 3 0 0 1 0 6m1 3c2.4.8 4 3 4 6"/></symbol>
+ <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 2v6m8-6v6M3 11h18"/></symbol>
+ <symbol id="i-news" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 11h5M7 15h10"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+ <symbol id="i-stars" viewBox="0 0 24 24"><path d="m12 2 2.6 6.9L22 12l-7.4 3.1L12 22l-2.6-6.9L2 12l7.4-3.1Z"/></symbol>
+ <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+ <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+ <symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></symbol>
+ <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 11v6m0-10h.01"/></symbol>
+ <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 1 5M3 4v7h7"/></symbol>
+</svg>
+<div class="shell">
+ <aside class="sidebar" id="sidebar">
+   <a class="brand" href="#inicio"><span class="planet-logo">◉</span><span><strong>GRAN ZONA<br><i>MARCIANA</i></strong><small>REALITY CONTROL · GZM</small></span></a>
+   <div class="nav-label">CENTRO DE CONTROL</div>
+   <nav aria-label="Secciones principales">
+     <a data-page="inicio" class="active" href="#inicio"><svg class="icon"><use href="#i-grid"/></svg> Panel principal</a>
+     <a data-page="galas" href="#galas"><svg class="icon"><use href="#i-calendar"/></svg> Galas y ediciones</a>
+     <a data-page="concursantes" href="#concursantes"><svg class="icon"><use href="#i-users"/></svg> Concursantes</a>
+     <a data-page="votaciones" href="#votaciones"><svg class="icon"><use href="#i-stars"/></svg> Votaciones</a>
+     <a data-page="solicitudes" href="#solicitudes"><svg class="icon"><use href="#i-check"/></svg> Solicitudes</a>
+     <a data-page="noticias" href="#noticias"><svg class="icon"><use href="#i-news"/></svg> Actualidad</a>
+   </nav>
+   <div class="nav-label secondary-label">DOCUMENTACIÓN</div>
+   <nav aria-label="Información del proyecto">
+     <a data-page="proyecto" href="#proyecto"><svg class="icon"><use href="#i-info"/></svg> El proyecto</a>
+     <a href="https://github.com/juanjogamero/GranZonaMarciana" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-arrow"/></svg> Ver código fuente</a>
+   </nav>
+   <div class="sidebar-bottom"><div class="mini-poster"><span>GZM / TEMPORADA 01</span><div class="mini-orbit"><i></i></div><strong>El espectáculo<br>está por comenzar.</strong></div><small>Proyecto Android · DAM<br>Vista web ilustrativa</small></div>
+ </aside>
+ <div class="workspace">
+   <header class="topbar">
+     <div class="breadcrumb"><button id="mobile-nav" aria-label="Abrir menú" aria-expanded="false"><svg class="icon"><use href="#i-menu"/></svg></button><span>UNIVERSO GZM</span><b>/</b><strong id="breadcrumb-title">Panel principal</strong></div>
+     <div class="topbar-end"><span class="local-label"><i></i> DATOS DE EJEMPLO</span><label for="role">Explorar como <select id="role"><option value="ESPECTADOR">Espectador</option><option value="ADMINISTRADOR">Producción</option><option value="CONCURSANTE">Concursante</option><option value="INVITADO">Invitado</option></select></label></div>
+   </header>
+   <main>
+     <div class="preview-note"><strong>Vista interactiva</strong><span>Esta web presenta el proyecto Android con datos ficticios. Las acciones se guardan solo en tu navegador.</span><a href="#proyecto">Cómo funciona ↗</a></div>
+     <section id="view-inicio" class="view">
+       <div class="hero">
+         <div class="hero-copy"><div class="eyebrow"><span class="micro-line"></span> EN DIRECTO DESDE EL UNIVERSO MARCIANO</div><h1>La próxima<br><em>gran historia</em><br>empieza aquí.</h1><p>Concursantes, galas y decisiones en un mismo lugar. Explora el centro de control de Gran Zona Marciana.</p><button class="hero-button" type="button" data-goto="galas">Descubrir las galas <svg class="icon"><use href="#i-arrow"/></svg></button></div>
+         <div class="hero-graphic" aria-hidden="true"><div class="orbit orbit-1"></div><div class="orbit orbit-2"></div><div class="big-planet"><span class="planet-crater c1"></span><span class="planet-crater c2"></span><span class="planet-crater c3"></span></div><div class="orbit-dot dot-1"></div><div class="orbit-dot dot-2"></div><span class="graphic-label a">GZM-01</span><span class="graphic-label b">CENTRO DE TRANSMISIÓN</span></div>
+       </div>
+       <div class="hero-meta"><span>REALITY / TEMPORADA DE EJEMPLO</span><span>ANDROID · JAVA · ROOM / SQLITE</span></div>
+       <div id="stats" class="stats"></div>
+       <div class="section-head"><div><span class="eyebrow dark">EN EL PROGRAMA</span><h2>Próximas galas</h2></div><a class="inline-link" href="#galas">Ver calendario <svg class="icon"><use href="#i-arrow"/></svg></a></div>
+       <div id="home-galas" class="home-galas"></div>
+       <div class="split-content"><div><div class="section-head compact"><div><span class="eyebrow dark">RANKING</span><h2>Favoritos del público</h2></div><a class="inline-link" href="#concursantes">Todos <svg class="icon"><use href="#i-arrow"/></svg></a></div><div id="home-ranking"></div></div><div><div class="section-head compact"><div><span class="eyebrow dark">EN PORTADA</span><h2>Últimas noticias</h2></div><a class="inline-link" href="#noticias">Actualidad <svg class="icon"><use href="#i-arrow"/></svg></a></div><div id="home-news"></div></div></div>
+     </section>
+     <section id="view-galas" class="view" hidden><div class="page-title"><span class="eyebrow dark">AGENDA / EDICIONES</span><h1>Las galas<span>.</span></h1><p>Descubre las fechas del programa y accede a los detalles de cada gala.</p></div><div id="edition-strip" class="edition-strip"></div><div class="section-head tight"><div><h2>Calendario del reality</h2></div><span class="subtitle" id="gala-count"></span></div><div id="gala-list" class="gala-list"></div></section>
+     <section id="view-concursantes" class="view" hidden><div class="page-title"><span class="eyebrow dark">CAST / TEMPORADA ACTUAL</span><h1>Los protagonistas<span>.</span></h1><p>Conoce a quienes forman parte del programa. Selecciona una ficha para ver sus resultados.</p></div><div id="contestants" class="contestants"></div></section>
+     <section id="view-votaciones" class="view" hidden><div class="page-title"><span class="eyebrow dark">LA AUDIENCIA DECIDE</span><h1>Votaciones<span>.</span></h1><p>Puntúa de 1 a 10 a tus favoritos durante las primeras 24 horas de cada gala.</p></div><div class="voting-info" id="voting-info"></div><div id="vote-list" class="vote-list"></div></section>
+     <section id="view-solicitudes" class="view" hidden><div class="page-title"><span class="eyebrow dark">ACCESO AL PROGRAMA</span><h1>Inscripciones<span>.</span></h1><p>Envía tu solicitud como espectador o revisa el cupo como producción.</p></div><div class="request-top" id="request-top"></div><div class="section-head tight"><div><h2>Solicitudes recibidas</h2></div><span class="subtitle" id="request-count"></span></div><div id="requests" class="request-list"></div></section>
+     <section id="view-noticias" class="view" hidden><div class="page-title"><span class="eyebrow dark">ACTUALIDAD / GZM</span><h1>Desde el plató<span>.</span></h1><p>Últimas novedades del programa y sus concursantes.</p></div><div id="news-grid" class="news-grid"></div></section>
+     <section id="view-proyecto" class="view" hidden><div class="page-title"><span class="eyebrow dark">PROYECTO ACADÉMICO · DAM</span><h1>La tecnología detrás<span>.</span></h1><p>Una aplicación Android nativa con datos locales y distintos perfiles de usuario.</p></div><div class="about-layout"><article><span class="eyebrow dark">ANDROID / JAVA</span><h2>Del aula al portfolio.</h2><p>Gran Zona Marciana es una aplicación móvil construida con Java, Android SDK y Room sobre SQLite. Su arquitectura incluye entidades, DAO, servicios y actividades nativas. Gestiona ediciones, galas, noticias, solicitudes y puntuaciones.</p><p>La versión web es una <strong>representación independiente y estática</strong> para explorar la idea sin instalar un emulador. No ejecuta Android, no autentica usuarios reales ni comparte datos con la APK.</p><div class="about-actions"><a href="https://github.com/juanjogamero/GranZonaMarciana" target="_blank" rel="noopener noreferrer" class="hero-button">Explorar código <svg class="icon"><use href="#i-arrow"/></svg></a><button id="reset" type="button" class="secondary-button"><svg class="icon"><use href="#i-reset"/></svg> Restaurar datos</button></div></article><aside class="tech-list"><h3>Stack del proyecto</h3><div><b>01</b> Java / Android SDK</div><div><b>02</b> Room · SQLite</div><div><b>03</b> Arquitectura DAO / Service</div><div><b>04</b> Material Components</div><div><b>05</b> JUnit / GitHub Actions</div><div><b>06</b> Android 8.0+ / API 26</div></aside></div></section>
+     <footer><span>© Gran Zona Marciana · Proyecto académico</span><span>Sin datos reales · <a href="https://github.com/juanjogamero/GranZonaMarciana" target="_blank" rel="noopener noreferrer">Código fuente ↗</a></span></footer>
+   </main>
+ </div>
+</div>
+<dialog id="details" aria-labelledby="modal-title"><button class="modal-close" id="close-modal" aria-label="Cerrar"><svg class="icon"><use href="#i-close"/></svg></button><div id="modal-content"></div></dialog>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body></html>
