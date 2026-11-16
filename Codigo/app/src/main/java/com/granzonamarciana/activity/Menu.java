@@ -158,5 +158,25 @@ public class Menu extends AppCompatActivity {
         // Actualizar nombre cuando se edite el perfil
         actualizarDatosSesion();
         configurarBotonesPorRol();
+
+        // El administrador puede haber aceptado a este usuario como concursante
+        // mientras el menú estaba en segundo plano. Room sigue siendo la fuente
+        // de verdad, no el rol almacenado en SharedPreferences.
+        int id=sharedPreferences.getInt("id",-1);
+        if(id<=0)return;
+        com.granzonamarciana.database.DatabaseExecutor.execute(()->{
+            com.granzonamarciana.entity.Actor actor=
+                com.granzonamarciana.database.DatabaseHelper.getInstance(this)
+                    .actorDao().buscarPorIdSync(id);
+            runOnUiThread(()->{
+                if(isFinishing()||isDestroyed())return;
+                if(actor==null){cerrarSesion();return;}
+                sharedPreferences.edit()
+                    .putString("username",actor.getUsername())
+                    .putString("rol",actor.getRol().name()).apply();
+                actualizarDatosSesion();
+                configurarBotonesPorRol();
+            });
+        });
     }
 }
