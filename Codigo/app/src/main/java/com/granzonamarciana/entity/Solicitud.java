@@ -2,10 +2,11 @@ package com.granzonamarciana.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.TypeConverters;
 
 
-@Entity(tableName = "solicitud")
+@Entity(tableName = "solicitud", indices = {@Index(value = {"idConcursante","idEdicion"}, unique = true)})
 public class Solicitud extends DomainEntity {
 
     @ColumnInfo(name = "mensaje")

@@ -3,6 +3,7 @@ package com.granzonamarciana.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import com.granzonamarciana.entity.Puntuacion;
@@ -12,8 +13,8 @@ import java.util.List;
 @Dao
 public interface PuntuacionDao {
 
-    @Insert
-    void insertarPuntuacion(Puntuacion puntuacion);
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    long insertarPuntuacion(Puntuacion puntuacion);
 
     // Obtener todas las puntuaciones (útil para el admin)
     @Query("SELECT * FROM puntuacion")

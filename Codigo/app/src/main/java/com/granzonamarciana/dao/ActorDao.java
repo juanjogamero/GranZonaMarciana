@@ -6,6 +6,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
+import androidx.room.OnConflictStrategy;
 
 import com.granzonamarciana.entity.Actor;
 
@@ -15,7 +16,7 @@ import java.util.List;
 public interface ActorDao {
 
     // Insertar un Actor
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     void insertarActor(Actor actor);
 
     // Actualizar un Actor
@@ -47,7 +48,16 @@ public interface ActorDao {
     @Query("SELECT * FROM actor")
     LiveData<List<Actor>> listarTodos();
 
-    // Método síncrono para comprobaciones rápidas en hilos secundarios
+    @Query("SELECT COUNT(*) FROM actor")
+    int contarActores();
+
+    @Query("SELECT * FROM actor WHERE id = :id LIMIT 1")
+    Actor buscarPorIdSync(int id);
+
+    @Query("UPDATE actor SET rol = :rol WHERE id = :id")
+    int actualizarRol(int id, String rol);
+
+    // Método síncrono para comprobaciones en hilos secundarios
     @Query("SELECT * FROM actor WHERE username = :username LIMIT 1")
     Actor loginSync(String username);
 }

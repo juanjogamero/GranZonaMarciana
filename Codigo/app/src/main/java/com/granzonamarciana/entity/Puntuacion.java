@@ -2,8 +2,9 @@ package com.granzonamarciana.entity;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Index;
 
-@Entity(tableName = "puntuacion")
+@Entity(tableName = "puntuacion", indices = {@Index(value = {"idEspectador","idGala","idConcursante"}, unique = true)})
 public class Puntuacion extends DomainEntity {
 
     private int valor;

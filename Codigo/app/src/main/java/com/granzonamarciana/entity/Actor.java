@@ -1,16 +1,12 @@
 package com.granzonamarciana.entity;
 
 import androidx.room.Entity;
-import androidx.room.PrimaryKey;
+import androidx.room.Index;
 import java.io.Serializable;
 
-@Entity(tableName = "actor")
+@Entity(tableName = "actor", indices = {@Index(value = {"username"}, unique = true)})
 public class Actor extends DomainEntity implements Serializable {
-
-    @PrimaryKey(autoGenerate = true)
-    private int id;
-
-    private String username;
+private String username;
     private String password;
     private TipoRol rol;
     private String nombre;
@@ -36,15 +32,7 @@ public class Actor extends DomainEntity implements Serializable {
     }
 
     // Getters y Setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
+public String getUsername() {
         return username;
     }
 
