@@ -63,6 +63,10 @@ public class FormEdicion extends AppCompatActivity {
                 LocalDate fin = LocalDate.parse(etFechaFin.getText().toString(), formatter);
                 int max = Integer.parseInt(etMaxParticipantes.getText().toString());
 
+                if(fin.isBefore(inicio) || max < 1) {
+                    Toast.makeText(FormEdicion.this,"La fecha final debe ser igual o posterior al inicio y el cupo positivo",Toast.LENGTH_LONG).show();
+                    return;
+                }
                 if (edicionExistente != null) {
                     edicionExistente.setFechaInicio(inicio);
                     edicionExistente.setFechaFin(fin);

@@ -99,6 +99,15 @@ public class FormGala extends AppCompatActivity {
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, nombres);
                 autoCompleteEdicion.setAdapter(adapter);
 
+                if(galaCargada!=null) {
+                    for(int i=0;i<listaEdiciones.size();i++){
+                        if(listaEdiciones.get(i).getId()==galaCargada.getIdEdicion()){
+                            edicionSeleccionada=listaEdiciones.get(i);
+                            autoCompleteEdicion.setText(nombres.get(i),false);
+                            break;
+                        }
+                    }
+                }
                 // Capturamos la selección
                 autoCompleteEdicion.setOnItemClickListener((parent, view, position, id) -> {
                     edicionSeleccionada = listaEdiciones.get(position);
@@ -115,8 +124,14 @@ public class FormGala extends AppCompatActivity {
                 LocalDateTime fecha = gala.getFechaRealizacion();
                 etFecha.setText(fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
-                // Nota: Seleccionar automáticamente la edición en el dropdown es complejo
-                // con AutoCompleteTextView sin un adaptador custom, así que lo dejamos limpio por ahora.
+                // Mantener la edición original al abrir el formulario de edición.
+                for(Edicion e:listaEdiciones){
+                    if(e.getId()==gala.getIdEdicion()){
+                        edicionSeleccionada=e;
+                        autoCompleteEdicion.setText(e.toString(),false);
+                        break;
+                    }
+                }
             }
         });
     }

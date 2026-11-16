@@ -3,111 +3,153 @@ package com.granzonamarciana;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
-
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
-
 import com.granzonamarciana.activity.FormUsuario;
 import com.granzonamarciana.activity.Menu;
+import com.granzonamarciana.database.DatabaseExecutor;
+import com.granzonamarciana.database.DatabaseHelper;
 import com.granzonamarciana.database.PopulateDB;
-import com.granzonamarciana.entity.TipoRol;
 import com.granzonamarciana.entity.Actor;
-import com.granzonamarciana.service.ActorService;
-
+import com.granzonamarciana.entity.TipoRol;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class MainActivity extends AppCompatActivity {
+    private EditText usuario,contrasena;
+    private Button login;
 
-    private ActorService actorService;
-    private PopulateDB populateDB;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
         setContentView(R.layout.activity_main);
+        usuario=findViewById(R.id.etUsername);
+        contrasena=findViewById(R.id.etPassword);
+        login=findViewById(R.id.btnLogin);
+        login.setEnabled(false);
+        login.setOnClickListener(v->iniciarSesion());
+        findViewById(R.id.btnCrearUsuario).setOnClickListener(v->
+            startActivity(new Intent(this,FormUsuario.class)));
+        findViewById(R.id.btnInvitado).setOnClickListener(v->
+            startActivity(new Intent(this,Menu.class)));
 
-        // Inicializar PopulateDB y poblar la base de datos si es necesario
-        populateDB = new PopulateDB(this);
-        populateDB.populateIfNeeded();
-
-        // Si ya hay sesión, vamos al menú
-        comprobarSiEstaLogueado();
-
-        actorService = new ActorService(this);
-
-        EditText etUsername = findViewById(R.id.etUsername);
-        EditText etPassword = findViewById(R.id.etPassword);
-        Button btnLogin = findViewById(R.id.btnLogin);
-        Button btnCrearUsuario = findViewById(R.id.btnCrearUsuario);
-        Button btnInvitado = findViewById(R.id.btnInvitado); // Botón para entrar sin loguearse
-
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String username = etUsername.getText().toString().trim();
-                String password = etPassword.getText().toString().trim();
-
-                if (username.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Usuario y/o contraseña vacíos", Toast.LENGTH_LONG).show();
-                } else {
-                    loginActor(username, password);
-                }
-            }
-        });
-
-        btnCrearUsuario.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Ir a registro (FormUsuario)
-                startActivity(new Intent(MainActivity.this, FormUsuario.class));
-            }
-        });
-
-        // Opción para entrar como invitado (Requisito: Actor no autenticado)
-        if (btnInvitado != null) {
-            btnInvitado.setOnClickListener(v -> {
-                startActivity(new Intent(MainActivity.this, Menu.class));
+        new PopulateDB(this).populateIfNeeded();
+        // Leer y validar la sesión existente contra la base en vez de confiar
+        // únicamente en el rol almacenado en las preferencias del dispositivo.
+        SharedPreferences prefs=getSharedPreferences("granzonaUser",MODE_PRIVATE);
+        int sessionId=prefs.getInt("id",-1);
+        DatabaseExecutor.execute(()->{
+            DatabaseHelper db=DatabaseHelper.getInstance(this);
+            int cuentas=db.actorDao().contarActores();
+            Actor actor=sessionId>0?db.actorDao().buscarPorIdSync(sessionId):null;
+            runOnUiThread(()->{
+                if(isFinishing()||isDestroyed())return;
+                login.setEnabled(true);
+                if(cuentas==0){mostrarPrimerInicio();return;}
+                if(actor!=null){
+                    guardarSesion(actor);
+                    abrirMenu();
+                }else if(sessionId>0){prefs.edit().clear().apply();}
             });
-        }
-    }
-
-    private void loginActor(final String username, final String password) {
-        // Buscamos en la tabla actor
-        actorService.buscarPorUsername(username).observe(this, new Observer<Actor>() {
-            @Override
-            public void onChanged(Actor actor) {
-                if (actor != null && BCrypt.checkpw(password, actor.getPassword())) {
-                    // Guardamos sesión y vamos al Menu
-                    guardarUsuarioLogueado(actor.getId(), actor.getUsername(), actor.getRol());
-                    startActivity(new Intent(MainActivity.this, Menu.class));
-                    finish();
-                } else {
-                    Toast.makeText(MainActivity.this, "Usuario y/o contraseña incorrectos", Toast.LENGTH_LONG).show();
-                }
-            }
         });
     }
 
-    private void guardarUsuarioLogueado(int id, String username, TipoRol rol) {
-        SharedPreferences sharedPreferences = getSharedPreferences("granzonaUser", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        editor.putInt("id", id);
-        editor.putString("username", username);
-        editor.putString("rol", rol.toString());
-
-        editor.apply();
-    }
-
-    private void comprobarSiEstaLogueado() {
-        SharedPreferences sharedPreferences = getSharedPreferences("granzonaUser", MODE_PRIVATE);
-        if (sharedPreferences.contains("id")) {
-            startActivity(new Intent(MainActivity.this, Menu.class));
-            finish();
+    private void iniciarSesion(){
+        String username=usuario.getText().toString().trim();
+        String password=contrasena.getText().toString();
+        if(username.isEmpty()||password.isEmpty()){
+            Toast.makeText(this,"Introduce usuario y contraseña",Toast.LENGTH_SHORT).show();
+            return;
         }
+        login.setEnabled(false);
+        DatabaseExecutor.execute(()->{
+            Actor actor=DatabaseHelper.getInstance(this).actorDao().loginSync(username);
+            boolean correcto=false;
+            try{correcto=actor!=null&&BCrypt.checkpw(password,actor.getPassword());}
+            catch(IllegalArgumentException ignored){}
+            final boolean valid=correcto;
+            runOnUiThread(()->{
+                if(isFinishing()||isDestroyed())return;
+                if(valid){guardarSesion(actor);abrirMenu();}
+                else{
+                    login.setEnabled(true);
+                    Toast.makeText(this,"Usuario o contraseña incorrectos",Toast.LENGTH_LONG).show();
+                }
+            });
+        });
     }
+
+    private void guardarSesion(Actor actor){
+        getSharedPreferences("granzonaUser",MODE_PRIVATE).edit()
+            .putInt("id",actor.getId())
+            .putString("username",actor.getUsername())
+            .putString("rol",actor.getRol().name())
+            .apply();
+    }
+
+    private void abrirMenu(){
+        startActivity(new Intent(this,Menu.class));
+        finish();
+    }
+
+    /** No distribuimos ninguna contraseña administrativa fija con la APK. */
+    private void mostrarPrimerInicio(){
+        LinearLayout content=new LinearLayout(this);
+        content.setPadding(dp(20),dp(8),dp(20),dp(8));
+        content.setOrientation(LinearLayout.VERTICAL);
+        EditText name=new EditText(this);
+        name.setHint("Usuario administrador");
+        name.setSingleLine(true);
+        EditText pass=new EditText(this);
+        pass.setHint("Contraseña (mínimo 10 caracteres)");
+        pass.setSingleLine(true);
+        pass.setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        content.addView(name);
+        content.addView(pass);
+        AlertDialog dialog=new AlertDialog.Builder(this)
+            .setTitle("Configura la primera cuenta")
+            .setMessage("Tu base de datos está vacía. Crea una cuenta de administrador para gestionar el reality en este dispositivo.")
+            .setView(content)
+            .setCancelable(false)
+            .setPositiveButton("Crear administrador",null).create();
+        dialog.setOnShowListener(ignored->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
+            String username=name.getText().toString().trim();
+            String password=pass.getText().toString();
+            if(!username.matches("[a-zA-Z0-9_.-]{3,30}")){
+                name.setError("Entre 3 y 30 caracteres, sin espacios");return;
+            }
+            if(password.length()<10){
+                pass.setError("Usa al menos 10 caracteres");return;
+            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            DatabaseExecutor.execute(()->{
+                String error=null;
+                try{
+                    Actor admin=new Actor(username,BCrypt.hashpw(password,BCrypt.gensalt()),
+                        TipoRol.ADMINISTRADOR,"Administrador","Local","",
+                        "admin@localhost.invalid","","");
+                    DatabaseHelper.getInstance(this).actorDao().insertarActor(admin);
+                }catch(Exception e){error="No se ha podido crear la cuenta. Elige otro usuario.";}
+                final String outcome=error;
+                runOnUiThread(()->{
+                    if(isFinishing()||isDestroyed())return;
+                    if(outcome==null){
+                        dialog.dismiss();
+                        usuario.setText(username);
+                        contrasena.setText("");
+                        Toast.makeText(this,"Cuenta creada. Ya puedes iniciar sesión.",Toast.LENGTH_LONG).show();
+                    }else{
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                        Toast.makeText(this,outcome,Toast.LENGTH_LONG).show();
+                    }
+                });
+            });
+        }));
+        dialog.show();
+    }
+    private int dp(int n){return Math.round(n*getResources().getDisplayMetrics().density);}
 }

@@ -55,6 +55,11 @@ public class FormUsuario extends AppCompatActivity {
         configurarSelectorRoles();
 
         // 3. Lógica de Carga de Datos
+        if (idActorGestion != -1 && !TipoRol.ADMINISTRADOR.name().equals(rolSesion)) {
+            Toast.makeText(this,"Acceso no autorizado",Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
         if (idActorGestion != -1) {
             // Caso: El Admin está consultando a otro usuario
             mostrarFotoPerfil(true);
@@ -105,10 +110,11 @@ public class FormUsuario extends AppCompatActivity {
         List<String> roles = new ArrayList<>();
         // Por defecto, cualquier actor no autenticado puede ser Espectador o Concursante
         roles.add(TipoRol.ESPECTADOR.toString());
-        roles.add(TipoRol.CONCURSANTE.toString());
+        // Los nuevos participantes solicitan acceso como espectadores; el admin aprueba.
 
         // Solo un Administrador puede asignar el rol de Administrador
         if (rolSesion.equals(TipoRol.ADMINISTRADOR.toString())) {
+            roles.add(TipoRol.CONCURSANTE.toString());
             roles.add(TipoRol.ADMINISTRADOR.toString());
         }
 
@@ -156,7 +162,18 @@ public class FormUsuario extends AppCompatActivity {
         String username = etNombreUsuario.getText().toString().trim();
         String passRaw = etContrasena.getText().toString().trim();
         String rolSeleccionado = autoCompleteRol.getText().toString();
+        if(actorCargado != null && idActorGestion == -1) {
+            // Editar el perfil propio nunca puede elevar o reducir el rol.
+            rolSeleccionado=actorCargado.getRol().name();
+        }
+        if(actorCargado == null && !TipoRol.ADMINISTRADOR.name().equals(rolSesion)) {
+            rolSeleccionado=TipoRol.ESPECTADOR.name();
+        }
 
+        if (!username.matches("[a-zA-Z0-9_.-]{3,30}")) {
+            etNombreUsuario.setError("Usuario de 3 a 30 caracteres sin espacios");
+            return;
+        }
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(rolSeleccionado)) {
             Toast.makeText(this, "Usuario y Rol son obligatorios", Toast.LENGTH_SHORT).show();
             return;
@@ -166,52 +183,46 @@ public class FormUsuario extends AppCompatActivity {
         String passwordFinal;
         if (actorCargado != null && TextUtils.isEmpty(passRaw)) {
             passwordFinal = actorCargado.getPassword();
-        } else if (!TextUtils.isEmpty(passRaw)) {
+        } else if (!TextUtils.isEmpty(passRaw) && passRaw.length() >= 8) {
             passwordFinal = BCrypt.hashpw(passRaw, BCrypt.gensalt());
         } else {
-            Toast.makeText(this, "La contraseña es obligatoria", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "La contraseña debe tener 8 caracteres como mínimo", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (actorCargado != null) {
-            // ACTUALIZAR
-            actorCargado.setUsername(username);
-            actorCargado.setPassword(passwordFinal);
-            actorCargado.setNombre(etNombre.getText().toString().trim());
-            actorCargado.setApellido1(etApellido1.getText().toString().trim());
-            actorCargado.setApellido2(etApellido2.getText().toString().trim());
-            actorCargado.setCorreo(etCorreo.getText().toString().trim());
-            actorCargado.setTelefono(etTelefono.getText().toString().trim());
-            actorCargado.setUrlImagen(etUrlImagen.getText().toString().trim());
-            actorCargado.setRol(TipoRol.valueOf(rolSeleccionado));
 
-            actorService.actualizarActor(actorCargado);
-
-            // Si es el perfil propio, actualizar SharedPreferences
-            if (idSesion == actorCargado.getId()) {
-                getSharedPreferences("granzonaUser", MODE_PRIVATE)
-                        .edit()
-                        .putString("username", username)
-                        .putString("rol", rolSeleccionado)
-                        .apply();
-            }
-
-            Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            // CREAR NUEVO
-            Actor nuevo = new Actor(
-                    username, passwordFinal, TipoRol.valueOf(rolSeleccionado),
-                    etNombre.getText().toString().trim(),
-                    etApellido1.getText().toString().trim(),
-                    etApellido2.getText().toString().trim(),
-                    etCorreo.getText().toString().trim(),
-                    etTelefono.getText().toString().trim(),
-                    etUrlImagen.getText().toString().trim()
-            );
-            actorService.insertarActor(nuevo);
-            Toast.makeText(this, "Usuario creado con éxito", Toast.LENGTH_SHORT).show();
-            finish();
+        boolean editando=actorCargado!=null;
+        Actor destino;
+        if(editando){
+            destino=actorCargado;
+            destino.setUsername(username);
+            destino.setPassword(passwordFinal);
+            destino.setNombre(etNombre.getText().toString().trim());
+            destino.setApellido1(etApellido1.getText().toString().trim());
+            destino.setApellido2(etApellido2.getText().toString().trim());
+            destino.setCorreo(etCorreo.getText().toString().trim());
+            destino.setTelefono(etTelefono.getText().toString().trim());
+            destino.setUrlImagen(etUrlImagen.getText().toString().trim());
+            destino.setRol(TipoRol.valueOf(rolSeleccionado));
+        }else{
+            destino=new Actor(username,passwordFinal,TipoRol.valueOf(rolSeleccionado),
+                etNombre.getText().toString().trim(),etApellido1.getText().toString().trim(),
+                etApellido2.getText().toString().trim(),etCorreo.getText().toString().trim(),
+                etTelefono.getText().toString().trim(),etUrlImagen.getText().toString().trim());
         }
+        View guardar=findViewById(R.id.btnGuardar);
+        guardar.setEnabled(false);
+        actorService.guardarActor(destino,editando,(ok,detalle)->{
+            if(isFinishing()||isDestroyed())return;
+            Toast.makeText(this,detalle,Toast.LENGTH_LONG).show();
+            if(ok){
+                if(editando&&idSesion==destino.getId()){
+                    getSharedPreferences("granzonaUser",MODE_PRIVATE).edit()
+                        .putString("username",destino.getUsername())
+                        .putString("rol",destino.getRol().name()).apply();
+                }
+                finish();
+            }else guardar.setEnabled(true);
+        });
     }
 }

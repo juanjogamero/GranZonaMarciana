@@ -67,45 +67,16 @@ public class ListSolicitud extends AppCompatActivity {
         }
     }
 
-    // Mostramos diálogo para aprobar o rechazar la solicitud
+
+    // La aprobación y el cupo se validan en la transacción del servicio,
+    // no en un diálogo que actualice la entidad directamente.
     private void gestionarSolicitud(Solicitud s) {
-        if (s == null) return;
-
-        // Solo permitimos gestionar si todavía está PENDIENTE
-        if (s.getEstado() != EstadoSolicitud.PENDIENTE) {
-            Toast.makeText(this, "Esta solicitud ya ha sido procesada (" + s.getEstado() + ")", Toast.LENGTH_SHORT).show();
-            return;
+        if(s==null)return;
+        if(s.getEstado()!=EstadoSolicitud.PENDIENTE){
+            Toast.makeText(this,"La solicitud ya está "+s.getEstado(),Toast.LENGTH_LONG).show();return;
         }
-
-        // Creamos el diálogo
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_GranZonaMarciana_Dialog)
-                .setTitle("Gestionar Solicitud")
-                .setMessage("¿Deseas aceptar a este usuario como concursante?")
-                .setPositiveButton("ACEPTAR", (d, which) -> {
-                    s.setEstado(EstadoSolicitud.ACEPTADA);
-                    solicitudService.actualizarSolicitud(s);
-                    Toast.makeText(this, "Solicitud Aceptada", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("RECHAZAR", (d, which) -> {
-                    s.setEstado(EstadoSolicitud.RECHAZADA);
-                    solicitudService.actualizarSolicitud(s);
-                    Toast.makeText(this, "Solicitud Rechazada", Toast.LENGTH_SHORT).show();
-                })
-                .setNeutralButton("CANCELAR", null)
-                .create();
-
-        dialog.show();
-
-        // Color verde a las alertas (que si no me da TOC que salga morado)
-        int colorPrincipal = ContextCompat.getColor(this, R.color.color_principal_oscuro);
-        if (dialog.getButton(AlertDialog.BUTTON_POSITIVE) != null) {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(colorPrincipal);
-        }
-        if (dialog.getButton(AlertDialog.BUTTON_NEGATIVE) != null) {
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(colorPrincipal);
-        }
-        if (dialog.getButton(AlertDialog.BUTTON_NEUTRAL) != null) {
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(colorPrincipal);
-        }
+        android.content.Intent i=new android.content.Intent(this,FormSolicitud.class);
+        i.putExtra("idSolicitud",s.getId());
+        startActivity(i);
     }
 }

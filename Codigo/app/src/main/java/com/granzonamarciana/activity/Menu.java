@@ -84,10 +84,10 @@ public class Menu extends AppCompatActivity {
 
         // --- 3. ROLES ESPECÍFICOS ---
 
-        // NUEVO: Botón Inscribirse en Edición - SOLO para CONCURSANTES
+        // NUEVO: Botón Inscribirse en Edición - SOLO para ESPECTADORES
         View btnInscribirse = findViewById(R.id.btnInscribirse);
         if (btnInscribirse != null) {
-            if (esConcursante) {
+            if (esEspectador) {
                 btnInscribirse.setVisibility(VISIBLE);
                 btnInscribirse.setOnClickListener(v ->
                         startActivity(new Intent(Menu.this, ListEdicionInscribible.class)));
@@ -158,5 +158,25 @@ public class Menu extends AppCompatActivity {
         // Actualizar nombre cuando se edite el perfil
         actualizarDatosSesion();
         configurarBotonesPorRol();
+
+        // El administrador puede haber aceptado a este usuario como concursante
+        // mientras el menú estaba en segundo plano. Room sigue siendo la fuente
+        // de verdad, no el rol almacenado en SharedPreferences.
+        int id=sharedPreferences.getInt("id",-1);
+        if(id<=0)return;
+        com.granzonamarciana.database.DatabaseExecutor.execute(()->{
+            com.granzonamarciana.entity.Actor actor=
+                com.granzonamarciana.database.DatabaseHelper.getInstance(this)
+                    .actorDao().buscarPorIdSync(id);
+            runOnUiThread(()->{
+                if(isFinishing()||isDestroyed())return;
+                if(actor==null){cerrarSesion();return;}
+                sharedPreferences.edit()
+                    .putString("username",actor.getUsername())
+                    .putString("rol",actor.getRol().name()).apply();
+                actualizarDatosSesion();
+                configurarBotonesPorRol();
+            });
+        });
     }
 }

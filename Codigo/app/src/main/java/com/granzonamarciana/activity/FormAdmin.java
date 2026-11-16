@@ -26,6 +26,12 @@ public class FormAdmin extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_admin);
+        if (!TipoRol.ADMINISTRADOR.name().equals(
+            getSharedPreferences("granzonaUser",MODE_PRIVATE).getString("rol",""))) {
+            Toast.makeText(this,"Solo los administradores pueden gestionar estas cuentas",Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         actorService = new ActorService(this);
         inicializarCampos();
@@ -85,7 +91,17 @@ public class FormAdmin extends AppCompatActivity {
             return;
         }
 
-        if (editando && administrador != null) {
+        if(!user.matches("[a-zA-Z0-9_.-]{3,30}")){
+            etUsername.setError("Usuario de 3 a 30 caracteres sin espacios");
+            return;
+        }
+        if(!pass.isEmpty() && pass.length()<10){
+            etContrasena.setError("La contraseña debe tener 10 caracteres como mínimo");
+            return;
+        }
+        Actor destino;
+        boolean actualiza=editando&&administrador!=null;
+        if (actualiza) {
             // EDITAR ADMINISTRADOR EXISTENTE
             administrador.setUsername(user);
 
@@ -102,8 +118,7 @@ public class FormAdmin extends AppCompatActivity {
             administrador.setTelefono(tel);
             administrador.setUrlImagen(img);
 
-            actorService.actualizarActor(administrador);
-            Toast.makeText(this, "Perfil actualizado", Toast.LENGTH_SHORT).show();
+            destino=administrador;
         } else {
             // CREAR NUEVO ADMINISTRADOR
             if (TextUtils.isEmpty(pass)) {
@@ -115,9 +130,14 @@ public class FormAdmin extends AppCompatActivity {
             Actor nuevo = new Actor(user, passwordCifrada, TipoRol.ADMINISTRADOR,
                     nom, ape1, ape2, mail, tel, img);
 
-            actorService.insertarActor(nuevo);
-            Toast.makeText(this, "Administrador creado correctamente", Toast.LENGTH_SHORT).show();
+            destino=nuevo;
         }
-        finish();
+        android.view.View guardar=findViewById(R.id.btnGuardar);
+        guardar.setEnabled(false);
+        actorService.guardarActor(destino,actualiza,(ok,detalle)->{
+            if(isFinishing()||isDestroyed())return;
+            Toast.makeText(this,detalle,Toast.LENGTH_LONG).show();
+            if(ok)finish();else guardar.setEnabled(true);
+        });
     }
 }
