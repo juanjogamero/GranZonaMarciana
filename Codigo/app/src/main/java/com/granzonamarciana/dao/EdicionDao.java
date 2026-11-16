@@ -13,6 +13,9 @@ import java.util.List;
 
 @Dao
 public interface EdicionDao {
+    @Query("SELECT * FROM edicion WHERE id = :id LIMIT 1")
+    Edicion buscarEdicionSync(int id);
+
     // Insertar una nueva edición
     @Insert
     void insertarEdicion(Edicion edicion);

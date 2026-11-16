@@ -13,6 +13,9 @@ import java.util.List;
 
 @Dao
 public interface NoticiaDao {
+    @Query("SELECT COUNT(*) FROM noticia")
+    int contarNoticias();
+
     // Insertar una nueva noticia
     @Insert
     void insertarNoticia(Noticia n);
