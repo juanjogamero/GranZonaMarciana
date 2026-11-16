@@ -1,223 +1,88 @@
 package com.granzonamarciana.activity;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
-
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.granzonamarciana.R;
-import com.granzonamarciana.entity.Edicion;
 import com.granzonamarciana.entity.EstadoSolicitud;
-import com.granzonamarciana.entity.Solicitud;
 import com.granzonamarciana.entity.TipoRol;
 import com.granzonamarciana.service.ActorService;
-import com.granzonamarciana.service.EdicionService;
 import com.granzonamarciana.service.SolicitudService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class FormSolicitud extends AppCompatActivity {
+    private SolicitudService service;
+    private ActorService actores;
+    private TextInputEditText mensaje;
+    private MaterialButton enviar,aprobar,rechazar;
+    private int edicionId,solicitudId,usuarioId;
+    private boolean modoAdmin;
 
-    private SolicitudService solicitudService;
-    private ActorService actorService;
-    private EdicionService edicionService;
-
-    private TextInputEditText etMensaje;
-    private TextView tvInstrucciones;
-    private LinearLayout layoutAccionesAdmin;
-
-    private int idUsuarioSesion;
-    private String rolSesion;
-    private int idEdicionRecibida;
-    private int idSolicitudGestion;
-    private Solicitud solicitudCargada;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    @Override protected void onCreate(Bundle state) {
+        super.onCreate(state);
         setContentView(R.layout.activity_form_solicitud);
-
-        // 1. Inicializar Servicios
-        solicitudService = new SolicitudService(this);
-        actorService = new ActorService(this);
-        edicionService = new EdicionService(this);
-
-        // 2. Recuperar datos del Intent y Sesión
-        idEdicionRecibida = getIntent().getIntExtra("idEdicion", -1);
-        idSolicitudGestion = getIntent().getIntExtra("idSolicitud", -1);
-        idUsuarioSesion = getSharedPreferences("granzonaUser", MODE_PRIVATE).getInt("id", -1);
-        rolSesion = getSharedPreferences("granzonaUser", MODE_PRIVATE).getString("rol", "");
-
-        // 3. Vincular UI
-        etMensaje = findViewById(R.id.etDescripcionInscripcion);
-        tvInstrucciones = findViewById(R.id.tvInstrucciones);
-        layoutAccionesAdmin = findViewById(R.id.layoutAccionesAdmin);
-        MaterialButton btnEnviar = findViewById(R.id.btnEnviarSolicitud);
-        MaterialButton btnAprobar = findViewById(R.id.btnAprobarSolicitud);
-        MaterialButton btnRechazar = findViewById(R.id.btnRechazarSolicitud);
-        MaterialButton btnCancelar = findViewById(R.id.btnCancelarSolicitud);
-
-        // 4. Configurar UI según Rol
-        if (idSolicitudGestion != -1 && rolSesion.equals(TipoRol.ADMINISTRADOR.toString())) {
-            // MODO ADMIN: Gestionar solicitud existente
-            btnEnviar.setVisibility(View.GONE);
-            layoutAccionesAdmin.setVisibility(View.VISIBLE);
-            etMensaje.setEnabled(false);
-            cargarSolicitudParaGestion();
-        } else {
-            // MODO CONCURSANTE: Nueva solicitud
-            btnEnviar.setVisibility(View.VISIBLE);
-            layoutAccionesAdmin.setVisibility(View.GONE);
-            if (idEdicionRecibida == -1) {
-                finish();
-            }
-        }
-
-        // 5. Listeners
-        btnEnviar.setOnClickListener(v -> enviarNuevaSolicitud());
-        btnAprobar.setOnClickListener(v -> validarCupoYAprobar());
-        btnRechazar.setOnClickListener(v -> actualizarEstadoSolicitud(EstadoSolicitud.RECHAZADA));
-        btnCancelar.setOnClickListener(v -> finish());
-    }
-
-    private void cargarSolicitudParaGestion() {
-        solicitudService.buscarSolicitudPorId(idSolicitudGestion).observe(this, solicitud -> {
-            if (solicitud != null) {
-                solicitudCargada = solicitud;
-                etMensaje.setText(solicitud.getMensaje());
-
-                // Mostrar nombre del concursante
-                actorService.buscarPorId(solicitud.getIdConcursante()).observe(this, actor -> {
-                    if (actor != null) {
-                        tvInstrucciones.setText("Candidato: " + actor.getNombre() + " " + actor.getApellido1());
-                    }
+        service=new SolicitudService(this);
+        actores=new ActorService(this);
+        edicionId=getIntent().getIntExtra("idEdicion",-1);
+        solicitudId=getIntent().getIntExtra("idSolicitud",-1);
+        usuarioId=getSharedPreferences("granzonaUser",MODE_PRIVATE).getInt("id",-1);
+        String rol=getSharedPreferences("granzonaUser",MODE_PRIVATE).getString("rol","");
+        modoAdmin=solicitudId!=-1;
+        mensaje=findViewById(R.id.etDescripcionInscripcion);
+        enviar=findViewById(R.id.btnEnviarSolicitud);
+        aprobar=findViewById(R.id.btnAprobarSolicitud);
+        rechazar=findViewById(R.id.btnRechazarSolicitud);
+        TextView instrucciones=findViewById(R.id.tvInstrucciones);
+        LinearLayout adminActions=findViewById(R.id.layoutAccionesAdmin);
+        if(modoAdmin) {
+            if(!TipoRol.ADMINISTRADOR.name().equals(rol)){finish();return;}
+            enviar.setVisibility(View.GONE);
+            adminActions.setVisibility(View.VISIBLE);
+            mensaje.setEnabled(false);
+            service.buscarSolicitudPorId(solicitudId).observe(this,s->{
+                if(s==null){instrucciones.setText("Solicitud no encontrada");aprobar.setEnabled(false);rechazar.setEnabled(false);return;}
+                mensaje.setText(s.getMensaje());
+                boolean pendiente=s.getEstado()==EstadoSolicitud.PENDIENTE;
+                aprobar.setEnabled(pendiente);
+                rechazar.setEnabled(pendiente);
+                actores.buscarPorId(s.getIdConcursante()).observe(this,a->{
+                    if(a!=null)instrucciones.setText("Solicitante: "+a.getNombre()+" "+a.getApellido1()+" · "+s.getEstado());
                 });
+            });
+        }else{
+            if(edicionId<=0||usuarioId<=0||!TipoRol.ESPECTADOR.name().equals(rol)){
+                Toast.makeText(this,"Debes ser espectador para solicitar plaza",Toast.LENGTH_LONG).show();
+                finish();return;
             }
-        });
-    }
-
-    private void enviarNuevaSolicitud() {
-        String mensaje = etMensaje.getText().toString().trim();
-        if (TextUtils.isEmpty(mensaje)) {
-            Toast.makeText(this, "Escribe una descripción de por qué quieres participar", Toast.LENGTH_SHORT).show();
-            return;
+            enviar.setVisibility(View.VISIBLE);
+            adminActions.setVisibility(View.GONE);
         }
+        enviar.setOnClickListener(v->{
+            String texto=mensaje.getText()==null?"":mensaje.getText().toString().trim();
+            if(texto.isEmpty()){mensaje.setError("Escribe tu motivación");return;}
+            enviar.setEnabled(false);
+            service.crear(usuarioId,edicionId,texto,(ok,detalle)->resultado(ok,detalle,enviar));
+        });
+        aprobar.setOnClickListener(v->resolver(EstadoSolicitud.ACEPTADA));
+        rechazar.setOnClickListener(v->resolver(EstadoSolicitud.RECHAZADA));
+        findViewById(R.id.btnCancelarSolicitud).setOnClickListener(v->finish());
+    }
 
-        // RNF: Verificar que el usuario no tenga ya una solicitud pendiente o aceptada para esta edición
-        solicitudService.buscarSolicitudDeUsuario(idUsuarioSesion, idEdicionRecibida).observe(this, new Observer<Solicitud>() {
-            @Override
-            public void onChanged(Solicitud solicitudExistente) {
-                solicitudService.buscarSolicitudDeUsuario(idUsuarioSesion, idEdicionRecibida).removeObserver(this);
-
-                if (solicitudExistente != null) {
-                    String estadoActual = solicitudExistente.getEstado().toString();
-                    Toast.makeText(FormSolicitud.this,
-                            "Ya tienes una solicitud para esta edición con estado: " + estadoActual,
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    // No hay solicitud previa, creamos una nueva
-                    Solicitud s = new Solicitud();
-                    s.setMensaje(mensaje);
-                    s.setEstado(EstadoSolicitud.PENDIENTE);
-                    s.setIdConcursante(idUsuarioSesion);
-                    s.setIdEdicion(idEdicionRecibida);
-
-                    solicitudService.insertarSolicitud(s);
-                    Toast.makeText(FormSolicitud.this, "Solicitud enviada correctamente. El administrador la revisará.", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-            }
+    private void resolver(EstadoSolicitud estado) {
+        aprobar.setEnabled(false);rechazar.setEnabled(false);
+        service.resolver(solicitudId,estado,(ok,detalle)->{
+            if(isFinishing()||isDestroyed())return;
+            Toast.makeText(this,detalle,Toast.LENGTH_LONG).show();
+            if(ok)finish();else{aprobar.setEnabled(true);rechazar.setEnabled(true);}
         });
     }
-
-    // --- LÓGICA RNF: Control de Cupos y Cancelación Automática ---
-    private void validarCupoYAprobar() {
-        if (solicitudCargada == null) return;
-
-        // Paso 1: Obtener la Edición para saber el límite (maxParticipantes)
-        edicionService.buscarEdicionPorId(solicitudCargada.getIdEdicion()).observe(this, new Observer<Edicion>() {
-            @Override
-            public void onChanged(Edicion edicion) {
-                edicionService.buscarEdicionPorId(solicitudCargada.getIdEdicion()).removeObserver(this);
-
-                if (edicion != null) {
-                    contarYProcesar(edicion);
-                }
-            }
-        });
-    }
-
-    private void contarYProcesar(Edicion edicion) {
-        // Paso 2: Listar todas las solicitudes de esta edición
-        solicitudService.listarSolicitudesPorEdicion(edicion.getId()).observe(this, new Observer<List<Solicitud>>() {
-            @Override
-            public void onChanged(List<Solicitud> solicitudes) {
-                solicitudService.listarSolicitudesPorEdicion(edicion.getId()).removeObserver(this);
-
-                int aceptadas = 0;
-                List<Solicitud> pendientes = new ArrayList<>();
-
-                for (Solicitud s : solicitudes) {
-                    if (s.getEstado() == EstadoSolicitud.ACEPTADA) {
-                        aceptadas++;
-                    } else if (s.getEstado() == EstadoSolicitud.PENDIENTE && s.getId() != solicitudCargada.getId()) {
-                        pendientes.add(s);
-                    }
-                }
-
-                // RNF: Verificamos si ya está lleno
-                if (aceptadas >= edicion.getMaxParticipantes()) {
-                    Toast.makeText(FormSolicitud.this,
-                            "Error: Cupo completo (" + edicion.getMaxParticipantes() + " participantes). No se pueden aceptar más solicitudes.",
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    // Hay hueco: Aprobamos la actual
-                    actualizarEstadoSolicitud(EstadoSolicitud.ACEPTADA);
-
-                    // RNF: Si al aceptar esta se llena el cupo, rechazamos automáticamente el resto
-                    if (aceptadas + 1 >= edicion.getMaxParticipantes()) {
-                        rechazarRestantes(pendientes);
-                        Toast.makeText(FormSolicitud.this,
-                                "Solicitud aprobada. Cupo completo: se han cancelado automáticamente " + pendientes.size() + " solicitudes pendientes.",
-                                Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(FormSolicitud.this,
-                                "Solicitud aprobada. Quedan " + (edicion.getMaxParticipantes() - aceptadas - 1) + " plazas disponibles.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                    finish();
-                }
-            }
-        });
-    }
-
-    // RNF: Cancelación automática de solicitudes pendientes cuando se llena el cupo
-    private void rechazarRestantes(List<Solicitud> pendientes) {
-        for (Solicitud s : pendientes) {
-            s.setEstado(EstadoSolicitud.RECHAZADA);
-            solicitudService.actualizarSolicitud(s);
-        }
-    }
-
-    private void actualizarEstadoSolicitud(EstadoSolicitud nuevoEstado) {
-        if (solicitudCargada != null) {
-            solicitudCargada.setEstado(nuevoEstado);
-            solicitudService.actualizarSolicitud(solicitudCargada);
-
-            if(nuevoEstado == EstadoSolicitud.RECHAZADA) {
-                Toast.makeText(this, "Solicitud rechazada", Toast.LENGTH_SHORT).show();
-            } else if (nuevoEstado == EstadoSolicitud.ACEPTADA) {
-                Toast.makeText(this, "Solicitud aprobada correctamente", Toast.LENGTH_SHORT).show();
-            }
-            finish();
-        }
+    private void resultado(boolean ok,String detalle,MaterialButton boton){
+        if(isFinishing()||isDestroyed())return;
+        Toast.makeText(this,detalle,Toast.LENGTH_LONG).show();
+        if(ok)finish();else boton.setEnabled(true);
     }
 }

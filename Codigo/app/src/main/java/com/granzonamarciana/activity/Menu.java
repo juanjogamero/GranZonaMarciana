@@ -84,10 +84,10 @@ public class Menu extends AppCompatActivity {
 
         // --- 3. ROLES ESPECÍFICOS ---
 
-        // NUEVO: Botón Inscribirse en Edición - SOLO para CONCURSANTES
+        // NUEVO: Botón Inscribirse en Edición - SOLO para ESPECTADORES
         View btnInscribirse = findViewById(R.id.btnInscribirse);
         if (btnInscribirse != null) {
-            if (esConcursante) {
+            if (esEspectador) {
                 btnInscribirse.setVisibility(VISIBLE);
                 btnInscribirse.setOnClickListener(v ->
                         startActivity(new Intent(Menu.this, ListEdicionInscribible.class)));

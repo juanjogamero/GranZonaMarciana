@@ -55,6 +55,11 @@ public class FormUsuario extends AppCompatActivity {
         configurarSelectorRoles();
 
         // 3. Lógica de Carga de Datos
+        if (idActorGestion != -1 && !TipoRol.ADMINISTRADOR.name().equals(rolSesion)) {
+            Toast.makeText(this,"Acceso no autorizado",Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
         if (idActorGestion != -1) {
             // Caso: El Admin está consultando a otro usuario
             mostrarFotoPerfil(true);
@@ -105,10 +110,11 @@ public class FormUsuario extends AppCompatActivity {
         List<String> roles = new ArrayList<>();
         // Por defecto, cualquier actor no autenticado puede ser Espectador o Concursante
         roles.add(TipoRol.ESPECTADOR.toString());
-        roles.add(TipoRol.CONCURSANTE.toString());
+        // Los nuevos participantes solicitan acceso como espectadores; el admin aprueba.
 
         // Solo un Administrador puede asignar el rol de Administrador
         if (rolSesion.equals(TipoRol.ADMINISTRADOR.toString())) {
+            roles.add(TipoRol.CONCURSANTE.toString());
             roles.add(TipoRol.ADMINISTRADOR.toString());
         }
 
@@ -156,7 +162,18 @@ public class FormUsuario extends AppCompatActivity {
         String username = etNombreUsuario.getText().toString().trim();
         String passRaw = etContrasena.getText().toString().trim();
         String rolSeleccionado = autoCompleteRol.getText().toString();
+        if(actorCargado != null && idActorGestion == -1) {
+            // Editar el perfil propio nunca puede elevar o reducir el rol.
+            rolSeleccionado=actorCargado.getRol().name();
+        }
+        if(actorCargado == null && !TipoRol.ADMINISTRADOR.name().equals(rolSesion)) {
+            rolSeleccionado=TipoRol.ESPECTADOR.name();
+        }
 
+        if (!username.matches("[a-zA-Z0-9_.-]{3,30}")) {
+            etNombreUsuario.setError("Usuario de 3 a 30 caracteres sin espacios");
+            return;
+        }
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(rolSeleccionado)) {
             Toast.makeText(this, "Usuario y Rol son obligatorios", Toast.LENGTH_SHORT).show();
             return;
@@ -166,10 +183,10 @@ public class FormUsuario extends AppCompatActivity {
         String passwordFinal;
         if (actorCargado != null && TextUtils.isEmpty(passRaw)) {
             passwordFinal = actorCargado.getPassword();
-        } else if (!TextUtils.isEmpty(passRaw)) {
+        } else if (!TextUtils.isEmpty(passRaw) && passRaw.length() >= 8) {
             passwordFinal = BCrypt.hashpw(passRaw, BCrypt.gensalt());
         } else {
-            Toast.makeText(this, "La contraseña es obligatoria", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "La contraseña debe tener 8 caracteres como mínimo", Toast.LENGTH_SHORT).show();
             return;
         }
 
