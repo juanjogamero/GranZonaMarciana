@@ -37,4 +37,6 @@ public interface GalaDao {
     // Este método establece la realación lógica entre ediciones y sus eventos
     @Query("SELECT * FROM gala WHERE idEdicion = :idEdicion")
     LiveData<List<Gala>> listarGalasPorEdicion(int idEdicion);
+    @Query("SELECT * FROM gala WHERE id = :id LIMIT 1")
+    Gala buscarGalaSync(int id);
 }
