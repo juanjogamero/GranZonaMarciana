@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-labelledby="ttl dscr">
+<title id="ttl">Gran Zona Marciana — aplicación Android de gestión de realities</title>
+<desc id="dscr">Portada original con tipografía editorial, esfera de Marte y órbitas sobre fondo grafito.</desc>
+<rect width="1280" height="420" fill="#151d20"/>
+<path d="M49 58h1180" stroke="#405054" stroke-width="1"/><text x="51" y="36" fill="#c0cac6" font-family="Arial, Helvetica, sans-serif" font-size="13" letter-spacing="2" font-weight="700">PROYECTO ACADÉMICO / ANDROID</text>
+<text x="1229" y="36" text-anchor="end" fill="#d57c65" font-family="Arial, Helvetica, sans-serif" font-size="13">JAVA · ROOM · SQLITE</text>
+<rect x="52" y="89" width="185" height="26" fill="#39403e" rx="5"/>
+<text x="144" y="107" text-anchor="middle" fill="#f1b29c" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="700" letter-spacing="1">REALITY MANAGEMENT / GZM</text>
+<text x="47" y="197" fill="#f6f3ed" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="700" letter-spacing="-4">Gran Zona</text>
+<text x="47" y="276" fill="#de775f" font-family="Arial, Helvetica, sans-serif" font-size="78" font-weight="700" letter-spacing="-4">Marciana.</text>
+<text x="54" y="329" fill="#a8b6b4" font-family="Arial, Helvetica, sans-serif" font-size="19">Galas, concursantes y decisiones en una sola app.</text>
+<path d="M55 352h545" stroke="#435456"/><text x="54" y="384" fill="#93a39f" font-family="Arial, Helvetica, sans-serif" font-size="12" letter-spacing="1.4">GZM / ANDROID 8.0+ / PORTFOLIO</text>
+<circle cx="1060" cy="211" r="145" fill="#a7534f"/><circle cx="1028" cy="157" r="140" fill="#c86654"/>
+<circle cx="1003" cy="148" r="31" fill="#a9524a"/><circle cx="1091" cy="250" r="22" fill="#ad5248"/><circle cx="986" cy="271" r="15" fill="#ac574d"/>
+<path d="M764 303c149 63 325 32 443-64 97-79 45-165-122-164-175 0-297 101-291 193 5 78 119 129 257 128" fill="none" stroke="#f7c8b5" stroke-width="5"/>
+<path d="M784 302c150 72 346 23 463-100" fill="none" stroke="#dd8b70" stroke-width="2" opacity=".7"/>
+<circle cx="803" cy="291" r="10" fill="#f3ddc7"/>
+</svg>
