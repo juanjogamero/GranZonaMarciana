@@ -246,6 +246,8 @@ function requestDialog(){
  '<button type="submit" class="form-submit">Enviar solicitud</button></form></div>');
 }
 document.addEventListener("click",e=>{
+ const to=e.target.closest("[data-goto]");
+ if(to){location.hash=to.dataset.goto;return;}
  const btn=e.target.closest("[data-action]");if(!btn)return;
  const action=btn.dataset.action,id=Number(btn.dataset.id);
  if(action==="gala")galaDetails(id);
@@ -256,7 +258,6 @@ document.addEventListener("click",e=>{
  if(action==="approve")apply(decidir(db,rol,id,"ACEPTADA"),"Solicitud aprobada en esta simulación.");
  if(action==="reject")apply(decidir(db,rol,id,"RECHAZADA"),"Solicitud rechazada en esta simulación.");
  if(action==="go-votes"){close();location.hash="votaciones";}
- if(btn.dataset.goto){location.hash=btn.dataset.goto;}
 });
 document.addEventListener("submit",e=>{
  const form=e.target;if(!["form-vote","form-request"].includes(form.id))return;
