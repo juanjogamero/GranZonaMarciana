@@ -190,45 +190,39 @@ public class FormUsuario extends AppCompatActivity {
             return;
         }
 
-        if (actorCargado != null) {
-            // ACTUALIZAR
-            actorCargado.setUsername(username);
-            actorCargado.setPassword(passwordFinal);
-            actorCargado.setNombre(etNombre.getText().toString().trim());
-            actorCargado.setApellido1(etApellido1.getText().toString().trim());
-            actorCargado.setApellido2(etApellido2.getText().toString().trim());
-            actorCargado.setCorreo(etCorreo.getText().toString().trim());
-            actorCargado.setTelefono(etTelefono.getText().toString().trim());
-            actorCargado.setUrlImagen(etUrlImagen.getText().toString().trim());
-            actorCargado.setRol(TipoRol.valueOf(rolSeleccionado));
 
-            actorService.actualizarActor(actorCargado);
-
-            // Si es el perfil propio, actualizar SharedPreferences
-            if (idSesion == actorCargado.getId()) {
-                getSharedPreferences("granzonaUser", MODE_PRIVATE)
-                        .edit()
-                        .putString("username", username)
-                        .putString("rol", rolSeleccionado)
-                        .apply();
-            }
-
-            Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            // CREAR NUEVO
-            Actor nuevo = new Actor(
-                    username, passwordFinal, TipoRol.valueOf(rolSeleccionado),
-                    etNombre.getText().toString().trim(),
-                    etApellido1.getText().toString().trim(),
-                    etApellido2.getText().toString().trim(),
-                    etCorreo.getText().toString().trim(),
-                    etTelefono.getText().toString().trim(),
-                    etUrlImagen.getText().toString().trim()
-            );
-            actorService.insertarActor(nuevo);
-            Toast.makeText(this, "Usuario creado con éxito", Toast.LENGTH_SHORT).show();
-            finish();
+        boolean editando=actorCargado!=null;
+        Actor destino;
+        if(editando){
+            destino=actorCargado;
+            destino.setUsername(username);
+            destino.setPassword(passwordFinal);
+            destino.setNombre(etNombre.getText().toString().trim());
+            destino.setApellido1(etApellido1.getText().toString().trim());
+            destino.setApellido2(etApellido2.getText().toString().trim());
+            destino.setCorreo(etCorreo.getText().toString().trim());
+            destino.setTelefono(etTelefono.getText().toString().trim());
+            destino.setUrlImagen(etUrlImagen.getText().toString().trim());
+            destino.setRol(TipoRol.valueOf(rolSeleccionado));
+        }else{
+            destino=new Actor(username,passwordFinal,TipoRol.valueOf(rolSeleccionado),
+                etNombre.getText().toString().trim(),etApellido1.getText().toString().trim(),
+                etApellido2.getText().toString().trim(),etCorreo.getText().toString().trim(),
+                etTelefono.getText().toString().trim(),etUrlImagen.getText().toString().trim());
         }
+        View guardar=findViewById(R.id.btnGuardar);
+        guardar.setEnabled(false);
+        actorService.guardarActor(destino,editando,(ok,detalle)->{
+            if(isFinishing()||isDestroyed())return;
+            Toast.makeText(this,detalle,Toast.LENGTH_LONG).show();
+            if(ok){
+                if(editando&&idSesion==destino.getId()){
+                    getSharedPreferences("granzonaUser",MODE_PRIVATE).edit()
+                        .putString("username",destino.getUsername())
+                        .putString("rol",destino.getRol().name()).apply();
+                }
+                finish();
+            }else guardar.setEnabled(true);
+        });
     }
 }
