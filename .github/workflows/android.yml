@@ -18,9 +18,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-      - name: Instalar Android SDK 34
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+      - name: Comprobar SDK Android del runner
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          test -d "$ANDROID_HOME/platforms/android-34" || "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34"
       - name: Compilar APK y pasar tests
         working-directory: Codigo
         run: bash ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest
