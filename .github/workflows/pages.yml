@@ -12,7 +12,25 @@ concurrency:
   group: pages-gran-zona-marciana
   cancel-in-progress: true
 jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    outputs:
+      habilitado: ${{ steps.pages.outputs.habilitado }}
+    steps:
+      - name: Comprobar si GitHub Pages está habilitado
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            echo "habilitado=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "habilitado=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Activa GitHub Pages en Settings > Pages y selecciona GitHub Actions. La web está preparada."
+          fi
   deploy:
+    needs: comprobar
+    if: needs.comprobar.outputs.habilitado == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -20,8 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/upload-pages-artifact@v4
         with:
           path: docs
