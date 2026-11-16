@@ -16,6 +16,8 @@
 
 > **La versión web es una vista de portfolio**, no la aplicación Android ejecutada en el navegador. Usa datos ficticios y guarda los cambios localmente. Para probar el software nativo hay que instalar su APK o utilizar un emulador.
 
+> **Publicación web:** el código de la vista ya está incluido en `docs/`, pero el enlace de GitHub Pages quedará operativo cuando se active **Settings → Pages → Build and deployment → GitHub Actions**. No hace falta modificar el código; después basta con ejecutar el workflow de publicación.
+
 ## Así es el proyecto
 
 **Gran Zona Marciana** nació como trabajo académico del equipo **Ecentia**. El objetivo es ofrecer una experiencia móvil para organizar un reality show, con perfiles de administrador, espectador y concursante.
