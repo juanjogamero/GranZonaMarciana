@@ -26,6 +26,12 @@ public class FormAdmin extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_admin);
+        if (!TipoRol.ADMINISTRADOR.name().equals(
+            getSharedPreferences("granzonaUser",MODE_PRIVATE).getString("rol",""))) {
+            Toast.makeText(this,"Solo los administradores pueden gestionar estas cuentas",Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         actorService = new ActorService(this);
         inicializarCampos();
